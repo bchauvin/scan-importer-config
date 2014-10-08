@@ -1,0 +1,51 @@
+<extension target="org.nuxeo.ecm.platform.scanimporter.service.ScannedFileMapperComponent" point="config">
+  <!-- define here importer configuration -->
+  <importerConfig>
+    <!-- folder that holds the data to be imported -->
+    <sourcePath>/home/bertrand/Documents/nxtour14/scandata_in</sourcePath>
+    <!-- folder where xml files will be moved when processed (files will be deleted if directory is not set or does not exist)-->
+    <processedPath>/home/bertrand/Documents/nxtour14/scandata_out</processedPath>
+    <!-- number of threads used by the importer : keep it to 1 if using H2 or you will break H2's lucene index -->
+    <nbThreads>1</nbThreads>
+    <!-- define how many documents are imported between 2 commits -->
+    <batchSize>10</batchSize>
+    <!-- target path in the Nuxeo repository -->
+    <targetPath>/default-domain/workspaces/scandata_advanced/</targetPath>
+  	
+  	<createInitialFolder>false</createInitialFolder>
+  </importerConfig>
+</extension>
+
+<!-- Doctype to create depending on XML formatting -->
+<extension target="org.nuxeo.ecm.platform.importer.xml.parser.XMLImporterComponent" point="documentMapping">
+	<docConfig tagName="facture">
+	  <docType>Facture</docType>
+	</docConfig>
+</extension>
+
+<!-- XML to metadata mapping -->
+<extension target="org.nuxeo.ecm.platform.importer.xml.parser.XMLImporterComponent" point="attributeMapping">
+	<attributeConfig tagName="no_commande" docProperty="dc:title" xmlPath="@value"/>
+  <attributeConfig tagName="logiciel_source" docProperty="dc:source" xmlPath="@value"/>
+	<attributeConfig tagName="fournisseur" docProperty="facture:fournisseur" xmlPath="@value"/>
+  <attributeConfig tagName="total_ttc" docProperty="facture:montant" xmlPath="@value"/>
+  <attributeConfig tagName="date_commande" docProperty="facture:datecommande" xmlPath="@value"/>
+  <attributeConfig tagName="date_livraison_prevue" docProperty="facture:datelivraison" xmlPath="@value"/>
+
+  <attributeConfig tagName="file" docProperty="file:content">
+		<mapping documentProperty="filename">@name</mapping>
+		<mapping documentProperty="content">@name</mapping>
+	</attributeConfig>
+	
+	<attributeConfig tagName="achat" docProperty="facture:achats">
+   	<mapping documentProperty="ref">ref/text()</mapping>
+    <mapping documentProperty="description">desc/text()</mapping>
+    <mapping documentProperty="montant">montant/text()</mapping>
+    <mapping documentProperty="datelivraison">
+			<![CDATA[ #{
+				String date = currentElement.selectNodes('date_livraison/text()')[0].getText().trim();
+			  return Fn.parseDate(date, 'yyyy.MM.dd')
+	    }]]>
+		</mapping>
+  </attributeConfig>
+</extension>

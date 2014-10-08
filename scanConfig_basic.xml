@@ -1,0 +1,86 @@
+<extension target="org.nuxeo.ecm.platform.scanimporter.service.ScannedFileMapperComponent"
+  point="config">
+      <!-- define here importer configuration -->
+      <importerConfig>
+          <!-- folder that holds the data to be imported -->
+          <sourcePath>/home/bertrand/Documents/nxtour14/scandata_in</sourcePath>
+          <!-- folder where xml files will be moved when processed (files will be deleted if directory is not set or does not exist)-->
+        <processedPath>/home/bertrand/Documents/nxtour14/scandata_out</processedPath>
+          <!-- number of threads used by the importer : keep it to 1 if using H2 or you will break H2's lucene index -->
+          <nbThreads>1</nbThreads>
+          <!-- define how many documents are imported between 2 commits -->
+          <batchSize>10</batchSize>
+          <!-- Specify the path of the root document where you want to import your documents -->
+          <targetPath>/default-domain/workspaces/scandata</targetPath>
+          <!-- default to true -->
+          <createInitialFolder>false</createInitialFolder>
+          <!-- default to false -->
+          <mergeInitialFolder>false</mergeInitialFolder>
+          <!-- Looks for XML file and use mapping configuration, default to true. -->
+          <useXMLMapping>true</useXMLMapping>
+      </importerConfig>
+</extension>
+
+<extension target="org.nuxeo.ecm.platform.scanimporter.service.ScannedFileMapperComponent"
+  point="mapping">
+ 
+  <mapping>
+      <!-- you can define the target foldersih Document Type here  : default to Folder
+      <targetContainerType>Workspace</targetContainerType>
+      -->
+ 
+      <!-- you can define the target leaf Document type here: default to File
+      You can use a static definition : -->
+      <targetLeafType>Facture</targetLeafType>
+ 
+      <!-- Or a dynamic one by defining a class that implements the DocumentTypeMapper interface-->
+      <!-- <targetLeafTypeMapper>org.nuxeo.platform.scanimporter.tests.SampleMapper</targetLeafTypeMapper> -->
+ 
+      <fieldMappings>
+          <!-- simple meta-data mapping
+                 sourceXPath : xpath expression to locate the target XML node
+                 sourceAttribute : attribute used to read value (if null, TEXT subnode will be used)
+                 targetXPath : xpath of the target field in the Nuxeo DocumentModel
+                 targetType : target type (integer, string,  double, date)
+                 dateFormat : define the date format to be used to parse a date (default to "yyyy-MM-dd'T'hh:mm:ss.sss'Z'")
+          -->
+          <fieldMapping sourceXPath="//logiciel_source" sourceAttribute="value" targetXPath="dc:source" targetType="string" />
+          <fieldMapping sourceXPath="//fournisseur" sourceAttribute="value" targetXPath="facture:fournisseur" targetType="string" />
+          <fieldMapping sourceXPath="//no_commande" sourceAttribute="value" targetXPath="dc:title" targetType="string" />
+          <fieldMapping sourceXPath="//date_commande" sourceAttribute="value" targetXPath="facture:datecommande" targetType="date" />
+          <fieldMapping sourceXPath="//date_livraison_prevue" sourceAttribute="value" targetXPath="facture:datelivraison" targetType="date" dateFormat="yyyy-MM-dd" />
+          <fieldMapping sourceXPath="//total_ttc" sourceAttribute="value" targetXPath="facture:montant" targetType="double" />
+      </fieldMappings>
+ 
+      <blobMappings>
+          <!--
+          Mapping for blobs resources :
+                  sourceXPath : xpath expression to locate the target XML node
+                  sourcePathAttribute : attribute used to read the file path (if null, TEXT subnode will be used)
+                  sourceFilenameAttribute : attribute used to read the filename (if null, TEXT subnode will be used)
+                  targetXPath : xpath of the target field in the Nuxeo DocumentModel (if null, Nuxeo will use the default file:content)
+          -->
+          <blobMapping sourceXPath="//file" sourcePathAttribute="path" sourceFilenameAttribute="name" />
+      </blobMappings>
+  </mapping>
+  
+</extension>
+
+
+
+
+<!-- define scheduler event to trigger the import every 30 seconds 
+<extension
+  target="org.nuxeo.ecm.platform.scheduler.core.service.SchedulerRegistryService"
+  point="schedule">
+  <schedule id="scanImporter">
+    <username>Administrator</username>
+    <password>Administrator</password>
+    <eventId>ScanIngestionStart</eventId>
+    <eventCategory>default</eventCategory>
+
+    <cronExpression>*/30 * * * * ?</cronExpression>
+
+  </schedule>
+</extension>
+-->
